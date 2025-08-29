@@ -1,91 +1,42 @@
-name = "serverless-ds"
+# 项目名称（Cloudflare Workers 脚本名）
+name = "serverless-dns"
+
+# 部署入口（npm run build 后会生成 ./dist/worker.js）
 main = "./dist/worker.js"
+
+# 启用 workers.dev 子域测试（先用这个验证能跑通）
 workers_dev = true
-# logpush job is setup to capture from envs ending: log, pro, or one
-logpush = false
-# use node_compat or custom build
-# node_compat = true
-compatibility_date = "2023-03-21"
-send_metrics = false
-minify = false
-upload_source_maps = true
 
-# uncomment to enable analytics on serverless-dns
-# this binding is not inherited by other worker-envs
-#analytics_engine_datasets = [
-#    { binding = "METRICS", dataset = "SDNS_M0" },
-#    { binding = "BL_METRICS", dataset = "SDNS_BL0" }
-#]
+# Cloudflare Workers 的兼容日期（建议用最新，保持与 runtime API 兼容）
+compatibility_date = "2024-06-01"
 
+# 构建配置（确保 Pages/Workers 部署时执行）
 [build]
 command = "npm run build"
 
+# 文件规则，告诉 wrangler 要处理哪些文件
 [[rules]]
 type = "ESModule"
 globs = ["**/*.js"]
 
+# 环境变量（开发环境）
 [vars]
 LOG_LEVEL = "debug"
 WORKER_ENV = "development"
 CLOUD_PLATFORM = "cloudflare"
 
 ##################
-#------PROD------#
+# --- PROD ENV ---
 ##################
-# wrangler doesn't yet support Workers Services and the new "Environments"
-# github.com/cloudflare/cloudflare-docs/pull/3175/files
-# github.com/cloudflare/wrangler2/issues/27
-# developers.cloudflare.com/workers/platform/environments
 [env.prod]
-name = "basic-unbound"
+# 生产环境的 Worker 名称
+name = "serverless-dns-prod"
+
+# 如果你没有自己的域名，可以先不写 routes，直接用 workers.dev
+workers_dev = true
 minify = true
-routes = [
-  "sky.rethinkdns.com/*",
-  "sky.bravedns.com/*",
-  "basic.rethinkdns.com/*",
-  "basic.bravedns.com/*",
-  "free.bravedns.com/*",
-]
-# vars are not inherited
-# workers/platform/environment-variables#environment-variables-via-wrangler
+
 [env.prod.vars]
 LOG_LEVEL = "info"
 WORKER_ENV = "production"
 CLOUD_PLATFORM = "cloudflare"
-
-##################
-#------ONE-------#
-##################
-[env.one]
-name = "dns-one"
-logpush = true
-minify = true
-routes = [
-  "one.rethinkdns.com/*",
-  "one.bravedns.com/*",
-]
-analytics_engine_datasets = [
-    { binding = "METRICS", dataset = "ONE_M0" },
-    { binding = "BL_METRICS", dataset = "ONE_BL0" }
-]
-
-[env.one.vars]
-# just the error and request logs
-LOG_LEVEL = "logpush"
-WORKER_ENV = "production"
-CLOUD_PLATFORM = "cloudflare"
-CF_LOGPUSH_R2_PATH = "qlog/"
-AUTO_RENEW_BLOCKLISTS_OLDER_THAN = "42" # weeks
-
-##################
-#-----SECRETS----#
-##################
-# only for documentation purposes
-# developers.cloudflare.com/workers/platform/environment-variables/#adding-secrets-via-wrangler
-# [secrets]
-# GW_IP4 = ""
-# GW_IP6 = ""
-# CF_ACCOUNT_ID = ""
-# CF_API_TOKEN = ""
-# CF_LOGPUSH_R2_SECRET_KEY = ""
-# CF_LOGPUSH_R2_ACCESS_KEY = ""
