@@ -1,5 +1,5 @@
 # 项目名称（Cloudflare Workers 脚本名）
-name = "serverless-dns"
+name = "zzz"
 
 # 部署入口（npm run build 后会生成 ./dist/worker.js）
 main = "./dist/worker.js"
